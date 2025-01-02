@@ -55,7 +55,7 @@ public DaoAuthenticationProvider authenticationProvider() {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeRequests().requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/salledesport/**").permitAll()
-//            .requestMatchers("/owner/**").permitAll()
+            .requestMatchers("/abonnement/**").permitAll()
             .requestMatchers("/admin/**","/salledesport/**","/client/**","/owner/**").hasRole("ADMIN")
 //            .requestMatchers("/client/**").permitAll()
             .requestMatchers("/api/test/**").permitAll()

@@ -6,22 +6,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/abonnement")
 public class AbonnementRestController {
 
     @Autowired
     private AbonnementService abonnementService;
 
-    @PostMapping("/save")
-    public Abonnement createAbonnement(@RequestBody Abonnement abonnement) {
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @PostMapping("/save/{clientId}")
+    public Abonnement createAbonnement(@PathVariable long clientId, @RequestBody Abonnement abonnement) {
+        // Log incoming request for debugging
+        System.out.println("Creating abonnement for client with ID: " + clientId);
+
+        // Check if the client exists and if abonnement is valid
+        return abonnementService.createAbonnementForClient(clientId, abonnement);
+    }
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    @PostMapping("/new")
+   public Abonnement createAbonnement(@RequestBody Abonnement abonnement) {
         return abonnementService.createAbonnement(abonnement);
     }
-
-   /* @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','USER')")
+    @GetMapping("/all")
     public List<Abonnement> getAllAbonnements() {
         return abonnementService.getAllAbonnements();
-    }*/
+    }
 
 
     @GetMapping("/getOne/{id}")
