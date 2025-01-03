@@ -13,6 +13,8 @@ public class SalledesportDTO {
     private String numTel;
     private String heureOuverture;
     private String heureFermeture;
+    private String ownerUsername; // Ajouter le propriétaire si nécessaire
+
     private List<AbonnementDTO> abonnements;
 
 }

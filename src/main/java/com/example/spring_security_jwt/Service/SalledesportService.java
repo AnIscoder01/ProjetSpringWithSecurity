@@ -1,12 +1,12 @@
 package com.example.spring_security_jwt.Service;
 import java.time.format.DateTimeFormatter;
 
-import com.example.spring_security_jwt.Entity.Abonnement;
-import com.example.spring_security_jwt.Entity.AbonnementDTO;
-import com.example.spring_security_jwt.Entity.Salledesport;
-import com.example.spring_security_jwt.Entity.SalledesportDTO;
+import com.example.spring_security_jwt.Entity.*;
 import com.example.spring_security_jwt.Repository.SalledesportRepository;
+import com.example.spring_security_jwt.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +20,31 @@ public class SalledesportService {
     @Autowired
     private SalledesportRepository salledesportRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Transactional
     public Salledesport createSalledesport(Salledesport salledesport) {
-        return salledesportRepository.save(salledesport);
+        // Obtenir l'utilisateur connecté via Spring Security
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // Trouver l'utilisateur connecté dans la base de données
+        Optional<User> ownerOpt = userRepository.findByUsername(username);
+        if (ownerOpt.isPresent()) {
+            User owner = ownerOpt.get();
+
+            // Associer le propriétaire à la salle de sport
+            salledesport.setOwner(owner);
+
+            // Sauvegarder la salle de sport
+            return salledesportRepository.save(salledesport);
+        } else {
+            throw new RuntimeException("Utilisateur connecté non trouvé");
+        }
     }
+
+
 
 //    public List<Salledesport> getAllSalledesport() {
 //        return salledesportRepository.findAll();
@@ -34,8 +55,29 @@ public class SalledesportService {
         dto.setId(salledesport.getId());
         dto.setNomSalle(salledesport.getNomSalle());
         dto.setAdresse(salledesport.getAdresse());
-        // Copy other necessary fields
+        dto.setNumTel(salledesport.getNumTel());
+        dto.setHeureOuverture(salledesport.getHeureOuverture());
+        dto.setHeureFermeture(salledesport.getHeureFermeture());
+
+        if (salledesport.getOwner() != null) {
+            dto.setOwnerUsername(salledesport.getOwner().getUsername());
+        }
+
         return dto;
+    }
+
+
+    public List<SalledesportDTO> getSalledesportsByOwner() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Optional<User> ownerOpt = userRepository.findByUsername(username);
+        if (ownerOpt.isPresent()) {
+            List<Salledesport> salles = salledesportRepository.findByOwner(ownerOpt.get());
+            return convertToDTOList(salles);
+        } else {
+            throw new RuntimeException("Utilisateur connecté non trouvé");
+        }
     }
 
     public List<SalledesportDTO> convertToDTOList(List<Salledesport> salledesports) {
@@ -44,6 +86,9 @@ public class SalledesportService {
             dtoList.add(convertToDTO(salledesport));
         }
         return dtoList;
+    }
+    public Optional<User> getOwnerByUsername(String username) {
+        return userRepository.findByUsername(username); // Assuming you have a method to find user by username
     }
 
     public List<SalledesportDTO> getAllSalledesport() {
@@ -95,15 +140,30 @@ public class SalledesportService {
 
     @Transactional
     public Salledesport updateSalledesport(Salledesport salledesport) {
-        return salledesportRepository.save(salledesport);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Optional<User> ownerOpt = userRepository.findByUsername(username);
+        if (ownerOpt.isPresent() && salledesport.getOwner().equals(ownerOpt.get())) {
+            return salledesportRepository.save(salledesport);
+        } else {
+            throw new RuntimeException("Permission refusée : vous ne pouvez modifier que vos propres salles.");
+        }
     }
 
     @Transactional
     public void deleteSalledesport(long id) {
-        if (salledesportRepository.existsById(id)) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Optional<User> ownerOpt = userRepository.findByUsername(username);
+        Optional<Salledesport> salledesportOpt = salledesportRepository.findById(id);
+
+        if (ownerOpt.isPresent() && salledesportOpt.isPresent() &&
+                salledesportOpt.get().getOwner().equals(ownerOpt.get())) {
             salledesportRepository.deleteById(id);
         } else {
-            throw new RuntimeException("Salledesport not found with id: " + id);
+            throw new RuntimeException("Permission refusée : vous ne pouvez supprimer que vos propres salles.");
         }
     }
 }

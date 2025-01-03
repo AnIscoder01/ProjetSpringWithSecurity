@@ -8,6 +8,7 @@ import java.util.List;
 @Setter
 @Entity
 public class Salledesport {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,9 +19,18 @@ public class Salledesport {
     private String heureOuverture;
     private String heureFermeture;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "owner_id")
-    private User owner;  // Many gyms can belong to one owner
+    private User owner;
+
+    // Getters et setters
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
 
     @OneToMany(mappedBy = "salledesport", cascade = CascadeType.ALL)
     private List<Abonnement> abonnements;

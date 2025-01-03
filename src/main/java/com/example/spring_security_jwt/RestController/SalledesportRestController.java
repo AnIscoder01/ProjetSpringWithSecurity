@@ -15,12 +15,19 @@ import java.util.List;
 public class SalledesportRestController {
     @Autowired
     private SalledesportService salledesportService;
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/my-salles")
+    public List<SalledesportDTO> getMySalles() {
+        return salledesportService.getSalledesportsByOwner();
+    }
+
+
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/save")
     public Salledesport createSalledesport(@RequestBody Salledesport salledesport) {
         return salledesportService.createSalledesport(salledesport);
     }
-
     @GetMapping("/all")
     public List<SalledesportDTO> getAllSallesdesport() {
         return salledesportService.getAllSalledesport();
