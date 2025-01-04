@@ -30,6 +30,23 @@ public class AbonnementRestController {
    public Abonnement createAbonnement(@RequestBody Abonnement abonnement) {
         return abonnementService.createAbonnement(abonnement);
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','USER')")
+    @GetMapping("/by-salle/{salleId}")
+    public List<Abonnement> getAbonnementsBySalle(@PathVariable long salleId) {
+        return abonnementService.getAbonnementsBySalle(salleId);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    @PostMapping("/create-for-salle/{salleId}")
+    public Abonnement createAbonnementForSalle(@PathVariable long salleId, @RequestBody Abonnement abonnement) {
+        // Log pour vérifier les paramètres
+        System.out.println("Creating abonnement for salle with ID: " + salleId);
+
+        // Appeler le service pour la création
+        return abonnementService.createAbonnementForSalle(salleId, abonnement);
+    }
+
     @PreAuthorize("hasAnyRole('ADMIN','OWNER','USER')")
     @GetMapping("/all")
     public List<Abonnement> getAllAbonnements() {

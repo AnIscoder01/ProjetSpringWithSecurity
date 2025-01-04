@@ -2,8 +2,10 @@ package com.example.spring_security_jwt.Service;
 
 
 import com.example.spring_security_jwt.Entity.Abonnement;
+import com.example.spring_security_jwt.Entity.Salledesport;
 import com.example.spring_security_jwt.Entity.User;
 import com.example.spring_security_jwt.Repository.AbonnementRepository;
+import com.example.spring_security_jwt.Repository.SalledesportRepository;
 import com.example.spring_security_jwt.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,8 @@ public class AbonnementService {
 
     @Autowired
     private AbonnementRepository abonnementRepository;
-
+    @Autowired
+    private SalledesportRepository salledesportRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -52,6 +55,27 @@ public class AbonnementService {
         }
 
         // Save and return the abonnement
+        return abonnementRepository.save(abonnement);
+    }
+
+    public List<Abonnement> getAbonnementsBySalle(long salleId) {
+        // Vérifier que la salle existe
+        Salledesport salle = salledesportRepository.findById(salleId)
+                .orElseThrow(() -> new RuntimeException("Salle de sport not found"));
+
+        // Retourner les abonnements de cette salle
+        return abonnementRepository.findBySalledesport(salle);
+    }
+
+    public Abonnement createAbonnementForSalle(long salleId, Abonnement abonnement) {
+        // Récupérer la salle depuis le repository
+        Salledesport salle = salledesportRepository.findById(salleId)
+                .orElseThrow(() -> new RuntimeException("Salle de sport not found"));
+
+        // Associer la salle à l'abonnement
+        abonnement.setSalledesport(salle);
+
+        // Enregistrer l'abonnement
         return abonnementRepository.save(abonnement);
     }
 
