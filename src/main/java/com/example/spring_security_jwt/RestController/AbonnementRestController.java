@@ -37,7 +37,7 @@ public class AbonnementRestController {
         return abonnementService.getAbonnementsBySalle(salleId);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/create-for-salle/{salleId}")
     public Abonnement createAbonnementForSalle(@PathVariable long salleId, @RequestBody Abonnement abonnement) {
         // Log pour vérifier les paramètres
